@@ -1,3 +1,3 @@
 # gitmine
 experiment for C
-WEB coding
+I am a newbie, a few pointers?
