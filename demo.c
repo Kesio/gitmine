@@ -16,7 +16,6 @@ void deal_num(GtkButton * button, gpointer data){
 		}
 		else{
 			sscanf(buf, "%d%c%d", &a, &c, &b);//&
-			printf("%s=", buf);
 			if(c == '+'){
 				sprintf(buf, "%d", a+b);
 			}
@@ -31,7 +30,6 @@ void deal_num(GtkButton * button, gpointer data){
 			}
 		}
 	}
-	printf("%d", buf);
 	gtk_entry_set_text(GTK_ENTRY(data), buf);
 }
 
@@ -111,6 +109,7 @@ int main(int argc, char * argv[]){
 	g_signal_connect(button_mul, "pressed", G_CALLBACK(deal_num), entry);
 	g_signal_connect(button_div, "pressed", G_CALLBACK(deal_num), entry);
 	g_signal_connect(button_equ, "pressed", G_CALLBACK(deal_num), entry);
+	g_signal_connect(buttonc, "pressed", G_CALLBACK(deal_num), entry);
 	g_signal_connect(window, "destroy", G_CALLBACK(closeapp), entry);
 
 	//移动click2
