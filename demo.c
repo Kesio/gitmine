@@ -30,10 +30,9 @@ void deal_num(GtkButton * button, gpointer data){
 				sprintf(buf, "%d", a/b);
 			}
 		}
-		printf("%d", buf);
-		gtk_entry_set_text(GTK_ENTRY(data), buf);
-		
 	}
+	printf("%d", buf);
+	gtk_entry_set_text(GTK_ENTRY(data), buf);
 }
 
 void closeapp(GtkWidget * window, gpointer data){
