@@ -23,7 +23,7 @@ void * recvthread(void * p){
 	while(1){
 		char buffer[200];
 
-		if(read(sock, buffer, sizeof(buffer)) <= 0){//接收服务端的信息
+		if(recv(sock, buffer, sizeof(buffer), 0) <= 0){//接收服务端的信息
 			printf("服务器停止服务\n");
 			close(sock);
 			exit(1);
@@ -47,11 +47,11 @@ int main(int argc, char * argv[]){
 		strcpy(name, argv[1]);//得到用户名
 		strcpy(ipaddr, argv[2]);//得到Ip
 		init();
-		write(sock, name, sizeof(name));//发送用户名
+		send(sock, name, sizeof(name), 0);//发送用户名
 		scanf("%s", &buffer);//输入
 		while(!(strcmp(buffer, "q!") == 0)){
 			sprintf(msg, "%s说：%s\n", name, buffer);
-			write(sock, msg, sizeof(msg));//发送
+			send(sock, msg, sizeof(msg), 0);//发送
 			scanf("%s", &buffer);
 		}
 		

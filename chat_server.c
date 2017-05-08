@@ -69,11 +69,11 @@ void * nospeak(void * p){
 void * clntthread(void * clnt_sock){
 	getpeername(clnt_sock, (struct sockaddr *)&clnt_addr, &len);
 	char str[200];
-	char send[200];
+	char msg[200];
 	int num = (int *)clnt_sock;
 	c[size].number = num;//存储用户套接字
 	char name[20] = {0};
-	read(num, name, sizeof(name));//接收用户名
+	recv(num, name, sizeof(name), 0);//接收用户名
 
 	for(int i = 0; i < size; i++){//判断是否重名
 		if(strcmp(name, c[i].name)==0){
@@ -84,15 +84,15 @@ void * clntthread(void * clnt_sock){
 
 	strcpy(c[size].name, name);//存储用户名
 	size++;
-	sprintf(send, "---------(%s)%s上线---------\n", inet_ntoa(clnt_addr.sin_addr), name);//广播上线信息
+	sprintf(msg, "---------(%s)%s上线---------\n", inet_ntoa(clnt_addr.sin_addr), name);//广播上线信息
 	for(int i = 0; i<size; i++){
-		write(c[i].number, send, sizeof(send));   
+		send(c[i].number, msg, sizeof(msg), 0);   
 	}
-	printf("%s",send);
+	printf("%s",msg);
 	char nospeak[100];
 	strcpy(nospeak, "你已被系统禁言\n");
 	while(1){
-		if(read(num, str, sizeof(str)) <= 0){//接收客户信息，判断是否在线
+		if(recv(num, str, sizeof(str), 0) <= 0){//接收客户信息，判断是否在线
 			//下线
 			for(int i = 0; i < size; i++){
 				if(c[i].number == num){//比较，哪个用户下线
@@ -101,10 +101,10 @@ void * clntthread(void * clnt_sock){
 				}
 			}
 			size--;//有效用户规模减少
-			sprintf(send,"---------(%s)%s已下线---------\n", inet_ntoa(clnt_addr.sin_addr), name);
-			printf(send);
+			sprintf(msg,"---------(%s)%s已下线---------\n", inet_ntoa(clnt_addr.sin_addr), name);
+			printf(msg);
 			for(int i = 0; i<size; i++){//广播客户下线信息
-				write(c[i].number, send, sizeof(send));
+				send(c[i].number, msg, sizeof(msg), 0);
 			}
 			close(num);//关闭此客户套接字
 			return 0;
@@ -112,8 +112,8 @@ void * clntthread(void * clnt_sock){
 		//在线
 		for(int j = 0; j < bsize; j++){
 			if(strcmp(name, b[j].bname) == 0){
-				write(num, nospeak, sizeof(nospeak));//new
-				if(read(num, str, sizeof(str)) <= 0){//接收客户信息，判断是否在线
+				send(num, nospeak, sizeof(nospeak), 0);//new
+				if(recv(num, str, sizeof(str), 0) <= 0){//接收客户信息，判断是否在线
 				//下线
 					for(int i = 0; i < size; i++){
 						if(c[i].number == num){//比较，哪个用户下线
@@ -122,10 +122,10 @@ void * clntthread(void * clnt_sock){
 						}
 					}
 					size--;//有效用户规模减少
-					sprintf(send,"---------(%s)%s已下线---------\n", inet_ntoa(clnt_addr.sin_addr), name);
-					printf(send);
+					sprintf(msg,"---------(%s)%s已下线---------\n", inet_ntoa(clnt_addr.sin_addr), name);
+					printf(msg);
 					for(int i = 0; i<size; i++){//广播客户下线信息
-						write(c[i].number, send, sizeof(send));
+						send(c[i].number, msg, sizeof(msg), 0);
 					}
 					close(num);//关闭此客户套接字
 					return 0;
@@ -135,9 +135,9 @@ void * clntthread(void * clnt_sock){
 		}
 
 		printf("%s\n", str);
-		sprintf(send, "(%s) %s", inet_ntoa(clnt_addr.sin_addr), str);
+		sprintf(msg, "(%s) %s", inet_ntoa(clnt_addr.sin_addr), str);
 		for(int i = 0; i<size; i++){//广播客户发送的信息
-			write(c[i].number, send, sizeof(send));
+			send(c[i].number, msg, sizeof(msg), 0);
 			
 		}
 	}
