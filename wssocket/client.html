@@ -1,0 +1,53 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Websocket chat</title>
+	<script language="javascript">
+	var socket;
+	var name=prompt("Username:");
+	
+	document.write(name+" online"+"<br/>"+"<br/>");	
+		
+	socket=new WebSocket('ws://172.16.40.45:9800');
+	socket.onopen = sOpen;
+	socket.onerror=sError;
+	socket.onmessage=sMessage;
+	socket.onclose=sClose;
+
+	function sOpen(){
+		alert('connecting......');
+		socket.send(name);
+	}
+
+	function sError(){
+		alert('connect error');
+	}
+
+	function sMessage(msg){
+		//alert('server says:'+msg);
+		document.getElementById("txtarea").value+='\r\n'+msg.data;
+	}
+
+	function sClose(){
+		alert('connect close');
+	}
+
+	function send(){
+		if(null!=socket){
+			var txt=document.getElementById("text").value;
+			socket.send(txt);
+			document.getElementById("txtarea").value+='\r\n'+'I:'+txt;
+		}
+	}
+
+
+</script>
+</head> 
+<body>
+	<input placeholder="Enter message" id="text" type="text"/>
+	<button id="send" onclick="send();">Send</button>
+	<br>
+	<br>
+	<textarea id="txtarea"></textarea>
+</body>
+</html>
