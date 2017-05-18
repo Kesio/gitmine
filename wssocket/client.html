@@ -4,7 +4,7 @@
 	<title>Websocket chat</title>
 	<script language="javascript">
 	var socket;
-	var address=prompt("请输入访问地址：","ws://10.0.2.15:9800");
+	var address=prompt("请输入访问地址：","ws://172.16.40.45:9800");
 	var name=prompt("请输入用户名：","Username");
 	document.write(name+" online"+"<br/>"+"<br/>");	
 	socket=new WebSocket(address);
@@ -37,11 +37,10 @@
 			socket.send(txt);
 			document.getElementById("txtarea").value+='\r\n'+'I:'+txt;
 		}
-	//	socket.send('hello,websocket!')
 	}
 	
-
-	function close(){
+	function exit(){
+		socket.send("hi!");
 		socket.close();
 	}
 
@@ -53,5 +52,6 @@
 	<br>
 	<input placeholder="Enter message" id="text" type="text" size="24"/>
 	<button id="send" onclick="send();">Send</button>
+	<button id="exit" onclick="exit();">Exit</button>
 </body>
 </html>

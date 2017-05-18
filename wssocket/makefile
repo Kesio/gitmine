@@ -5,4 +5,4 @@ all: wsserver
 wsserver: wsserver.c
 	$(CC) -o $@ $^ -lcrypto -lssl -lpthread
 clean:
-	@rm -f server 
+	@rm -f wsserver 
