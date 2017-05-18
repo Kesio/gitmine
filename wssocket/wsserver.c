@@ -30,6 +30,9 @@ void * clntthread(void * clntsock);
 //禁言客户线程
 void * nospeak(void * p);
 
+//显示在线客户名
+void sendName(int num);
+
 //base64编码
 int base64_encode(char *in_str, int in_len, char *out_str);
 
@@ -76,7 +79,7 @@ void clntLeave(int num){
 	//有效用户规模减少
 	size--;
 	close(num);	
-	
+	sendName(num);
 }
 
 void * nospeak(void * p){
@@ -103,6 +106,18 @@ void * nospeak(void * p){
 			bsize++;
 		}
 	}
+}
+
+void sendName(int num){
+	char clntname[100];
+	bzero(clntname,100);
+	strcpy(clntname,"OnlineUsers:\n");
+	for(int j=0;j<size;j++){
+		strcat(clntname,c[j].name);
+		strcat(clntname," \n");
+	}
+	for(int i=0;i<size;i++)
+		response(c[i].number,clntname);
 }
 
 void sendMsgToAll(int num,char* msg){
@@ -174,14 +189,15 @@ void * clntthread(void * clntsock){
 	strcpy(c[size].name, username);
 	size++;
 	//广播上线信息
+	sendName(num);
 	bzero(msg,sizeof(msg));
 	sprintf(msg, "-----%s上线-----\n", username);
 	sendMsgToAll(num,msg);
 	printf("%s",msg);
-	
 	char nospeak[20];
 	strcpy(nospeak, "你已被系统禁言\n"); 
 	while(1){
+		
 		bzero(str,sizeof(str));
 		n=recv(num, str, sizeof(str), 0);
 		data=analyData(str,n);
@@ -190,7 +206,7 @@ void * clntthread(void * clntsock){
 			clntLeave(num);
 			pthread_exit(NULL);
 		}
-
+		
 		//客户在线
 		//判断禁言
 		for(int j = 0; j < bsize; j++){
@@ -208,6 +224,7 @@ void * clntthread(void * clntsock){
 				--j;
 			}
 		}
+		
 		bzero(msg,sizeof(msg));
 		sprintf(msg, "(%s)%s说: %s", inet_ntoa(clnt_addr.sin_addr),username, data);
 		printf("%s\n",msg);
@@ -380,11 +397,12 @@ void response(int connfd,const char * message){
 		
 }  
 
-int main(int argc,char ** argv){
+int main(int argc,char * argv[]){
         int sockfd,len,newfd;
 		int reuse=1;
 		pthread_t threads;
 		pthread_t pid;
+		pthread_t ona;
         struct sockaddr_in l_addr;
         struct sockaddr_in c_addr;
 		char request[MAXLENGTH];
