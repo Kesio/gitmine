@@ -1,3 +1,6 @@
+/*
+ *
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <arpa/inet.h>
@@ -62,7 +65,7 @@ void clntLeave(int num){
 	for(int i = 0; i < size; i++){
 		//比较，哪个用户下线
 		if(c[i].number == num){
-			sprintf(msg,"---------%s已下线---------\n",c[i].name);
+			sprintf(msg,"-----%s已下线-----\n",c[i].name);
 			printf("%s",msg);
 			sendMsgToAll(num,msg);
 			//最后一个有效用户信息覆盖当前无效用户
@@ -133,7 +136,7 @@ void * clntthread(void * clntsock){
 	
 	//存储用户套接字
 	c[size].number = num;
-	//握手报文
+
 	bzero(request,MAXLENGTH);
         strcat(request,"HTTP/1.1 101 Switching Protocols\r\n");
 	strcat(request,"Upgrade:websocket\r\n");
@@ -158,7 +161,7 @@ void * clntthread(void * clntsock){
 			bzero(msg,sizeof(msg));
 			strcpy(msg,"用户名重复，登录失败\n");
 			response(num,msg);
-			//提醒当前用户
+			
 			bzero(msg,sizeof(msg));
 			strcpy(msg,"(有人尝试登录你的账号)\n");
 			response(c[i].number,msg);
@@ -172,10 +175,12 @@ void * clntthread(void * clntsock){
 	size++;
 	//广播上线信息
 	bzero(msg,sizeof(msg));
-	sprintf(msg, "---------(%s)%s上线---------\n", inet_ntoa(clnt_addr.sin_addr), username);
+	sprintf(msg, "-----%s上线-----\n", username);
 	sendMsgToAll(num,msg);
 	printf("%s",msg);
-	//处理客户收发信息
+	
+	char nospeak[20];
+	strcpy(nospeak, "你已被系统禁言\n"); 
 	while(1){
 		bzero(str,sizeof(str));
 		n=recv(num, str, sizeof(str), 0);
@@ -183,33 +188,31 @@ void * clntthread(void * clntsock){
 		//客户不在线
 		if(!strcmp(data,"quit!")){
 			clntLeave(num);
-			return 0;
+			pthread_exit(NULL);
 		}
 
 		//客户在线
 		//判断禁言
 		for(int j = 0; j < bsize; j++){
 			if(strcmp(username, b[j].bname) == 0){
-				char nospeak[20];
-				strcpy(nospeak, "你已被系统禁言\n"); 
 				response(num,nospeak);
 				bzero(str,sizeof(str));
 				n=recv(num, str, sizeof(str), 0);
 				data=analyData(str,n);
-				//判断禁言用户是否在线
+				//判断是否在线
 				if(!strcmp(data,"quit!")){
 				//下线
 					clntLeave(num);
-					return 0;
+					pthread_exit(NULL);
 				}
 				--j;
 			}
 		}
-		//正常在线客户
 		bzero(msg,sizeof(msg));
 		sprintf(msg, "(%s)%s说: %s", inet_ntoa(clnt_addr.sin_addr),username, data);
 		printf("%s\n",msg);
 		sendMsgToAll(num,msg);
+		
 	}
 }
 
@@ -233,33 +236,33 @@ int base64_encode(char *in_str, int in_len, char *out_str){
 }
 
 char * fetchSecKey(const char * buf){  
-	char *key;  
-	char *keyBegin;  
-	char *flag="Sec-WebSocket-Key: ";  
-	int i=0, bufLen=0;  
+	 char *key;  
+	 char *keyBegin;  
+	 char *flag="Sec-WebSocket-Key: ";  
+	 int i=0, bufLen=0;  
 		  
-	key=(char *)malloc(WEB_SOCKET_KEY_LEN_MAX);  
-	memset(key,0, WEB_SOCKET_KEY_LEN_MAX);
+	 key=(char *)malloc(WEB_SOCKET_KEY_LEN_MAX);  
+	 memset(key,0, WEB_SOCKET_KEY_LEN_MAX);
 
-	if(!buf) {  
+	 if(!buf) {  
 		return NULL;  
-	}  
+	 }  
 		         
-	keyBegin=strstr(buf,flag);  
-	if(!keyBegin){
-		return NULL;  
-	}  
-	keyBegin+=strlen(flag);  
+	 keyBegin=strstr(buf,flag);  
+	 if(!keyBegin){
+		 return NULL;  
+	 }  
+	 keyBegin+=strlen(flag);  
 			      
-	bufLen=strlen(buf);  
-	for(i=0;i<bufLen;i++){  
-		if(keyBegin[i]==0x0A||keyBegin[i]==0x0D){  
-			break;  
-		}  
-		key[i]=keyBegin[i];  
-	}  
+	 bufLen=strlen(buf);  
+	 for(i=0;i<bufLen;i++){  
+		 if(keyBegin[i]==0x0A||keyBegin[i]==0x0D){  
+			 break;  
+		 }  
+		 key[i]=keyBegin[i];  
+	 }  
 				    
-	return key;  
+	 return key;  
 }  
 
 char * analyData(const char * buf,const int bufLen){  
@@ -285,8 +288,7 @@ char * analyData(const char * buf,const int bufLen){
 	if (!maskFlag){  
 		// 不包含掩码的暂不处理  
 		return NULL;
-	} 
-	// opcode判断报文结束
+	}  
 	opcode=(buf[0]&0x08)==0x08;
 	if(opcode){
 		char * out;
@@ -329,57 +331,63 @@ char * analyData(const char * buf,const int bufLen){
 }  
 
 char *  packData(const char * message,unsigned long * len){  
-	char * data=NULL;  
-	unsigned long n;  
-  	n=strlen(message);  
+    char * data=NULL;  
+    unsigned long n;  
+  
+    n=strlen(message);  
         if (n < 126){  
-		data=(char *)malloc(n+2);  
-		memset(data,0,n+2);      
-		data[0] = 0x81;  
-		data[1] = n;  
-		memcpy(data+2,message,n);  
-		*len=n+2;  
+			data=(char *)malloc(n+2);  
+			memset(data,0,n+2);      
+			data[0] = 0x81;  
+			data[1] = n;  
+			memcpy(data+2,message,n);  
+			*len=n+2;  
         }  
         else if (n < 0xFFFF){  
-		data=(char *)malloc(n+4);  
-		memset(data,0,n+4);  
-		data[0] = 0x81;  
-		data[1] = 126;  
-		data[2] = (n>>8 & 0xFF);  
-		data[3] = (n & 0xFF);  
-		memcpy(data+4,message,n);      
-		*len=n+4;  
+			data=(char *)malloc(n+4);  
+			memset(data,0,n+4);  
+			data[0] = 0x81;  
+			data[1] = 126;  
+			data[2] = (n>>8 & 0xFF);  
+			data[3] = (n & 0xFF);  
+			memcpy(data+4,message,n);      
+			*len=n+4;  
         }  
-        else{         
+        else{  
+       
             // 暂不处理超长内容    
 			*len=0;  
         }  
     
+  
         return data;  
-	}  
+ }  
   
 void response(int connfd,const char * message){  
-	char * data;  
-	unsigned long n=0;  
+		char * data;  
+		unsigned long n=0;  
  
-	data=packData(message,&n);   
+		data=packData(message,&n);   
    
-	if(!data||n<=0){  
-		printf("data is empty!\n");  
-		return;  
-	}   
-			
-	send(connfd,data,n,0);  
+		if(!data||n<=0){  
+			printf("data is empty!\n");  
+			return;  
+		}   
+		
+		
+			send(connfd,data,n,0);  
+		
+		
 }  
 
 int main(int argc,char ** argv){
         int sockfd,len,newfd;
-	int reuse=1;
-	pthread_t threads;
-	pthread_t pid;
+		int reuse=1;
+		pthread_t threads;
+		pthread_t pid;
         struct sockaddr_in l_addr;
         struct sockaddr_in c_addr;
-	char request[MAXLENGTH];
+		char request[MAXLENGTH];
 	sockfd=socket(AF_INET,SOCK_STREAM,0);
 	setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&reuse,sizeof(int));
         if(sockfd<0)
@@ -393,13 +401,13 @@ int main(int argc,char ** argv){
         len=sizeof(struct sockaddr);
 	
         bzero(request,MAXLENGTH);
-	void * clntsock = &newfd;
+		void * clntsock = &newfd;
         while(1){
-		newfd=accept(sockfd,(struct sockaddr*)&c_addr,&len);
-	    	//客户收发线程	
-	    	pthread_create(&threads, NULL, clntthread, clntsock);
-	    	//禁言客户线程
-	    	pthread_create(&pid, NULL, nospeak, 0);
+            newfd=accept(sockfd,(struct sockaddr*)&c_addr,&len);
+			//客户收发线程	
+			pthread_create(&threads, NULL, clntthread, clntsock);
+			//禁言客户线程
+			pthread_create(&pid, NULL, nospeak, 0);
         }
         return 0;
 }
