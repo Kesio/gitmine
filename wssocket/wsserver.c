@@ -164,7 +164,7 @@ void * clntthread(void * clntsock){
 	SHA1(key, length, hash);
 	base64_encode(hash,strlen(hash),sec_accept);
 	sprintf(request, "%sSec-WebSocket-Accept: %s\r\n\r\n", request, sec_accept);
-	send(num,request,MAXLENGTH,0);
+	send(num,request,strlen(request),0);
 	//username
 	bzero(buf,MAXLENGTH);
 	n=recv(num,buf,MAXLENGTH,0);
