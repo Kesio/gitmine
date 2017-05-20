@@ -1,10 +1,11 @@
 <!DOCTYPE HTML>
 <html>
 <head>
+	<meta charset="UTF-8">
 	<title>Websocket chat</title>
 	<script language="javascript">
 	var socket;
-	var address=prompt("请输入访问地址：","ws://10.0.2.15:9800");
+	var address=prompt("请输入访问地址：","ws://127.0.0.1:9800");
 	var name=prompt("请输入用户名：","Username");
 	document.write(name+" online"+"<br/>"+"<br/>");	
 	socket=new WebSocket(address);
